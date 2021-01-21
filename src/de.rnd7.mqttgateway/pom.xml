@@ -5,11 +5,11 @@
 
     <parent>
         <groupId>de.rnd7.mqttgateway</groupId>
-        <artifactId>de.rnd7.mqttgateway.parent</artifactId>
+        <artifactId>parent</artifactId>
         <version>1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>de.rnd7.mqttgateway</artifactId>
+    <artifactId>mqtt</artifactId>
     <version>1-SNAPSHOT</version>
 
     <dependencies>
