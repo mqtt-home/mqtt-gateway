@@ -1,4 +1,4 @@
-package de.rnd7.mqttgateway;
+package de.rnd7.mqttgateway.config;
 
 import com.google.gson.annotations.SerializedName;
 
