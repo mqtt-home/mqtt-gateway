@@ -39,7 +39,19 @@ public class GwMqttClient {
     public static GwMqttClient start(final ConfigMqtt config, final String defaultClientId) {
         final GwMqttClient client = new GwMqttClient(config, defaultClientId);
         Events.register(client);
+
+        registerOfflineHook(client);
+
         return client;
+    }
+
+    private static void registerOfflineHook(final GwMqttClient mqttClient) {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                mqttClient.shutdown();
+            }
+        });
     }
 
     public void subscribe(final String topic) {
