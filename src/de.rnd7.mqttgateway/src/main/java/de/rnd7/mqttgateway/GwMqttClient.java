@@ -83,8 +83,8 @@ public class GwMqttClient {
             result.connect(connOpts);
             LOGGER.info("MQTT client connected");
 
-            result.subscribe(this.subscriptions.toArray(new String[0]));
             if (!this.subscriptions.isEmpty()) {
+                result.subscribe(this.subscriptions.toArray(new String[0]));
                 LOGGER.info("MQTT subscriptions: {}", this.subscriptions);
             }
 
