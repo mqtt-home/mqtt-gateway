@@ -68,6 +68,14 @@ public class ConfigMqtt {
         return Optional.ofNullable(this.clientId);
     }
 
+    public ConfigMqtt setDefaultClientId(final String clientId) {
+        if (this.clientId == null) {
+            this.clientId = clientId;
+        }
+
+        return this;
+    }
+
     public int getQos() {
         return this.qos;
     }
@@ -88,6 +96,14 @@ public class ConfigMqtt {
 
     public String getTopic() {
         return this.topic;
+    }
+
+    public ConfigMqtt setDefaultTopic(final String topic) {
+        if (this.topic == null) {
+            this.topic = topic;
+        }
+
+        return this;
     }
 
     public ConfigMqtt setTopic(final String topic) {

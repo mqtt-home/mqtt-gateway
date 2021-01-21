@@ -3,6 +3,7 @@ package de.rnd7.mqttgateway;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -29,15 +30,15 @@ public class GwMqttClient {
     private final MessageDeduplication deduplication;
     private final List<String> subscriptions = new ArrayList<>();
 
-    private GwMqttClient(final ConfigMqtt config, final String defaultClientId) {
+    private GwMqttClient(final ConfigMqtt config) {
         this.config = config;
-        this.defaultClientId = defaultClientId;
+        this.defaultClientId = UUID.randomUUID().toString();
         this.client = this.connect();
         this.deduplication = new MessageDeduplication(config.isDeduplicate(), config.getTopic());
     }
 
-    public static GwMqttClient start(final ConfigMqtt config, final String defaultClientId) {
-        final GwMqttClient client = new GwMqttClient(config, defaultClientId);
+    public static GwMqttClient start(final ConfigMqtt config) {
+        final GwMqttClient client = new GwMqttClient(config);
         Events.register(client);
 
         registerOfflineHook(client);
