@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>de.rnd7.mqttgateway</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1-SNAPSHOT</version>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
