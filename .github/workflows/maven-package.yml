@@ -20,7 +20,7 @@ jobs:
                   settings-path: ${{ github.workspace }} # location for the settings.xml file
 
             - name: Set version
-              run: mvn versions:set -DnewVersion=1.0.${{ github.run_number }}
+              run: mvn versions:set -DnewVersion=1.0.${{ github.run_number }} --file src/pom.xml
 
             - name: Build with Maven
               run: mvn -B package --file pom.xml
