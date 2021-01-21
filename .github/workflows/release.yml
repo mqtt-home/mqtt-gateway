@@ -52,6 +52,6 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: ./src/de.rnd7.mqttgateway/target/mqtt-1.0.${{ github.run_number }}.jar
-                  asset_name: mqtt-1.0.${{ github.run_number }}.jar
+                  asset_path: ./src/de.rnd7.mqttgateway/target/mqttgateway-1.0.${{ github.run_number }}.jar
+                  asset_name: mqttgateway-1.0.${{ github.run_number }}.jar
                   asset_content_type: application/jar

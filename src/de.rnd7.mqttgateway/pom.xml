@@ -9,7 +9,7 @@
         <version>1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>mqtt</artifactId>
+    <artifactId>mqttgateway</artifactId>
     <version>1-SNAPSHOT</version>
 
     <dependencies>
