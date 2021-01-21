@@ -26,7 +26,7 @@ jobs:
               run: mvn -B package --file src/pom.xml
 
             - name: Publish to GitHub Packages Apache Maven
-              run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+              run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml --file src/pom.xml
               env:
                   GITHUB_TOKEN: ${{ github.token }}
 
@@ -52,6 +52,6 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: ./src/de.rnd7.mqttgateway/target/mqtt-gateway.jar
+                  asset_path: ./src/de.rnd7.mqttgateway/target/de.rnd7.mqttgateway-1.0.${{ github.run_number }}.jar
                   asset_name: mqttrules.jar
                   asset_content_type: application/jar
