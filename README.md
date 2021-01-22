@@ -37,6 +37,6 @@ Use the following dependency:
 <dependency>
   <groupId>de.rnd7.mqttgateway</groupId>
   <artifactId>mqttgateway</artifactId>
-  <version>1.0.3</version>
+  <version>1.1.0-b7</version>
 </dependency>
 ```
