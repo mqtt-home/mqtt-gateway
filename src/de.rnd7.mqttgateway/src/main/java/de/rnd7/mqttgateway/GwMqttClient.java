@@ -147,7 +147,14 @@ public class GwMqttClient {
 
     private void publishBridgeInfo(final String info) {
         if (this.config.isPublishBridgeInfo()) {
-            publish(PublishMessage.relative(STATE, info));
+            final Optional<String> topic = this.config.getBridgeInfoTopic();
+
+            if (topic.isPresent()) {
+                publish(PublishMessage.absolute(topic.get(), info));
+            }
+            else {
+                publish(PublishMessage.relative(STATE, info));
+            }
         }
     }
 

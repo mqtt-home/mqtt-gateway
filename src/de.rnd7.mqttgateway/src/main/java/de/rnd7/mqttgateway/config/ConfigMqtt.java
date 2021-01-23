@@ -29,6 +29,9 @@ public class ConfigMqtt {
     @SerializedName("bridge-info")
     private boolean bridgeInfo = true;
 
+    @SerializedName("bridge-info-topic")
+    private String bridgeInfoTopic;
+
     @SerializedName("deduplicate")
     private boolean deduplicate = true;
 
@@ -127,5 +130,14 @@ public class ConfigMqtt {
     public ConfigMqtt setDeduplicate(final boolean deduplicate) {
         this.deduplicate = deduplicate;
         return this;
+    }
+
+    public ConfigMqtt setBridgeInfoTopic(final String bridgeInfoTopic) {
+        this.bridgeInfoTopic = bridgeInfoTopic;
+        return this;
+    }
+
+    public Optional<String> getBridgeInfoTopic() {
+        return Optional.ofNullable(this.bridgeInfoTopic);
     }
 }

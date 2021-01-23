@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 
 public class ConfigParser {
 
@@ -25,10 +26,14 @@ public class ConfigParser {
     public static <T> T parse(final InputStream in, final Class<T> type) throws IOException {
         final String json = IOUtils.toString(in, StandardCharsets.UTF_8);
 
-        final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationDeserializer())
-            .create();
+        return buildGson().fromJson(json, type);
+    }
 
-        return gson.fromJson(json, type);
+    public static Gson buildGson() {
+        return new GsonBuilder()
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
+            .setPrettyPrinting()
+            .create();
     }
 }
