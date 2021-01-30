@@ -78,6 +78,7 @@ public class GwMqttClient {
 
             final MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
+            connOpts.setMaxInflight(this.config.getMaxInflight());
 
             initAuthentication(connOpts);
 

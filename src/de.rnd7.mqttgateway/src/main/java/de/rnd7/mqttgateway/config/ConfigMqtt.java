@@ -35,6 +35,18 @@ public class ConfigMqtt {
     @SerializedName("deduplicate")
     private boolean deduplicate = true;
 
+    @SerializedName("max-inflight")
+    private int maxInflight = 10;
+
+    public int getMaxInflight() {
+        return this.maxInflight;
+    }
+
+    public ConfigMqtt setMaxInflight(final int maxInflight) {
+        this.maxInflight = maxInflight;
+        return this;
+    }
+
     public String getUrl() {
         return this.url;
     }
