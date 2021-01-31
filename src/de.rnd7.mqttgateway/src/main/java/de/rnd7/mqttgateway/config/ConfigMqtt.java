@@ -30,7 +30,7 @@ public class ConfigMqtt {
     private String bridgeInfoTopic;
 
     @SerializedName("deduplicate")
-    private boolean deduplicate = true;
+    private boolean deduplicate = false;
 
     public String getUrl() {
         return this.url;
