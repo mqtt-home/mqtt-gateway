@@ -1,10 +1,15 @@
 package de.rnd7.mqttgateway;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class Events {
     private final static Events events = new Events();
-    private final EventBus eventBus = new EventBus();
+    private final Executor executor = Executors.newFixedThreadPool(4);
+    private final AsyncEventBus eventBus = new AsyncEventBus("mqtt", this.executor);
 
     private Events() {
 

@@ -7,7 +7,8 @@ public class TopicCleaner {
 
     public static String clean(final String topic) {
         return topic
-            .replace(" ", "-").toLowerCase()
+            .toLowerCase()
+            .replace(" ", "-")
             .replace("ä", "ae")
             .replace("ö", "oe")
             .replace("ü", "ue");

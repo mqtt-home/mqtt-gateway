@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -22,6 +26,7 @@ import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3ConnectBuilder;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscription;
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck;
 import de.rnd7.mqttgateway.config.ConfigMqtt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 
 public class GwMqttClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GwMqttClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(GwMqttClient.class);
 
     public static final String STATE = "bridge/state";
     private final String defaultClientId;
@@ -75,17 +80,25 @@ public class GwMqttClient {
     public void subscribe(final String topic) {
         this.subscriptions.add(topic);
 
-        this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
+        final CompletableFuture<Mqtt3SubAck> subscribe = this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
             this::onMessage);
+
+        try {
+            subscribe.get(5, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (final Exception e) {
+            logger.error("Subscription not successful within the given time.", e);
+        }
     }
 
     private void onConnected(final MqttClientConnectedContext context) {
-        LOGGER.info("MQTT client connected");
+        logger.info("MQTT client connected");
         this.connected.set(true);
     }
 
     private void onDisconnected(final MqttClientDisconnectedContext context) {
-        LOGGER.error("MQTT client disconnected: {}", context.getCause().getMessage(), context.getCause());
+        logger.error("MQTT client disconnected: {}", context.getCause().getMessage(), context.getCause());
         this.connected.set(false);
     }
 
@@ -95,7 +108,7 @@ public class GwMqttClient {
     }
 
     private Mqtt3AsyncClient connect() throws URISyntaxException {
-        LOGGER.info("Connecting MQTT client");
+        logger.info("Connecting MQTT client");
 
         final URI uri = new URI(this.config.getUrl());
 
@@ -147,10 +160,10 @@ public class GwMqttClient {
     private void publish(final String topic, final String value) {
         synchronized (this.mutex) {
             if (this.connected.get()) {
-                LOGGER.debug("publishing {} = {}", topic, value);
+                logger.debug("publishing {} = {}", topic, value);
             }
             else {
-                LOGGER.error("cannot publish, not connected. {} = {}", topic, value);
+                logger.error("cannot publish, not connected. {} = {}", topic, value);
             }
 
             final Mqtt3Publish publish = Mqtt3Publish.builder()
