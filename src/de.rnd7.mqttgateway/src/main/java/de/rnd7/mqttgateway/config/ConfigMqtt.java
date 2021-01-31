@@ -20,11 +20,8 @@ public class ConfigMqtt {
     @SerializedName("topic")
     private String topic;
 
-    @SerializedName("client-id")
-    private String clientId;
-
     @SerializedName("qos")
-    private int qos = 2;
+    private int qos = 1;
 
     @SerializedName("bridge-info")
     private boolean bridgeInfo = true;
@@ -34,18 +31,6 @@ public class ConfigMqtt {
 
     @SerializedName("deduplicate")
     private boolean deduplicate = true;
-
-    @SerializedName("max-inflight")
-    private int maxInflight = 10;
-
-    public int getMaxInflight() {
-        return this.maxInflight;
-    }
-
-    public ConfigMqtt setMaxInflight(final int maxInflight) {
-        this.maxInflight = maxInflight;
-        return this;
-    }
 
     public String getUrl() {
         return this.url;
@@ -71,23 +56,6 @@ public class ConfigMqtt {
 
     public ConfigMqtt setPassword(final String password) {
         this.password = password;
-        return this;
-    }
-
-    public ConfigMqtt setClientId(final String clientId) {
-        this.clientId = clientId;
-        return this;
-    }
-
-    public Optional<String> getClientId() {
-        return Optional.ofNullable(this.clientId);
-    }
-
-    public ConfigMqtt setDefaultClientId(final String clientId) {
-        if (this.clientId == null) {
-            this.clientId = clientId;
-        }
-
         return this;
     }
 
