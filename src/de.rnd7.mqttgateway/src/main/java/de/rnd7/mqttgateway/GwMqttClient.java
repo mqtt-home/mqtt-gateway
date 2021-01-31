@@ -38,6 +38,10 @@ public class GwMqttClient {
         this.deduplication = new MessageDeduplication(config.isDeduplicate(), config.getTopic());
     }
 
+    public boolean isConnected() {
+        return this.client.map(MqttClient::isConnected).orElse(false);
+    }
+
     public static GwMqttClient start(final ConfigMqtt config) {
         final GwMqttClient client = new GwMqttClient(config);
         Events.register(client);
