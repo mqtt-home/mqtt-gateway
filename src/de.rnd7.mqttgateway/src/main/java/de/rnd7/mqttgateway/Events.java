@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 public class Events {
     private final static Events events = new Events();
     private final Executor executor = Executors.newFixedThreadPool(4);
-    private AsyncEventBus eventBus = new AsyncEventBus("mqtt", this.executor);
+    private EventBus eventBus = new AsyncEventBus("mqtt", this.executor);
 
     private Events() {
 
@@ -25,6 +25,15 @@ public class Events {
      */
     public void resetBus() {
         this.eventBus = new AsyncEventBus("mqtt", this.executor);
+    }
+
+    /**
+     * Call this method for test purpose only.
+     * This will create synchronous message bus. Use this to verify message
+     * order or that a message is not send.
+     */
+    public void syncBus() {
+        this.eventBus = new EventBus();
     }
 
     public static void register(final Object object) {
