@@ -1,16 +1,28 @@
 package de.rnd7.mqttgateway;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
+import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect;
+import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
+import com.hivemq.client.mqtt.lifecycle.MqttClientDisconnectedContext;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
+import com.hivemq.client.mqtt.mqtt3.message.auth.Mqtt3SimpleAuth;
+import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3Connect;
+import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3ConnectBuilder;
+import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe;
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscription;
 import de.rnd7.mqttgateway.config.ConfigMqtt;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,16 +34,16 @@ public class GwMqttClient {
     public static final String STATE = "bridge/state";
     private final String defaultClientId;
 
-    private final MemoryPersistence persistence = new MemoryPersistence();
     private final Object mutex = new Object();
     private final ConfigMqtt config;
 
-    private Optional<MqttClient> client;
+    private final Mqtt3AsyncClient client;
 
     private final MessageDeduplication deduplication;
     private final List<String> subscriptions = new ArrayList<>();
+    private final AtomicBoolean connected = new AtomicBoolean(false);
 
-    private GwMqttClient(final ConfigMqtt config) {
+    private GwMqttClient(final ConfigMqtt config) throws URISyntaxException {
         this.config = config;
         this.defaultClientId = UUID.randomUUID().toString();
         this.client = this.connect();
@@ -39,10 +51,10 @@ public class GwMqttClient {
     }
 
     public boolean isConnected() {
-        return this.client.map(MqttClient::isConnected).orElse(false);
+        return this.connected.get();
     }
 
-    public static GwMqttClient start(final ConfigMqtt config) {
+    public static GwMqttClient start(final ConfigMqtt config) throws URISyntaxException {
         final GwMqttClient client = new GwMqttClient(config);
         Events.register(client);
 
@@ -62,75 +74,104 @@ public class GwMqttClient {
 
     public void subscribe(final String topic) {
         this.subscriptions.add(topic);
-        this.client.ifPresent(client -> {
-            try {
-                client.subscribe(topic);
-            } catch (final MqttException e) {
-                LOGGER.error("Error subscribing to topic {}", topic, e);
-            }
-        });
+
+        this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
+            this::onMessage);
     }
 
-    private Optional<MqttClient> connect() {
-        try {
-            LOGGER.info("Connecting MQTT client");
-            final MqttClient result = new MqttClient(this.config.getUrl(),
-                this.config.getClientId().orElse(this.defaultClientId),
-                this.persistence);
+    private void onConnected(final MqttClientConnectedContext context) {
+        LOGGER.info("MQTT client connected");
+        this.connected.set(true);
+    }
 
-            result.setCallback(new EventBusMessageHandler());
+    private void onDisconnected(final MqttClientDisconnectedContext context) {
+        LOGGER.error("MQTT client disconnected: {}", context.getCause().getMessage(), context.getCause());
+        this.connected.set(false);
+    }
 
-            final MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setCleanSession(true);
-            connOpts.setMaxInflight(this.config.getMaxInflight());
+    private void onMessage(final Mqtt3Publish message) {
+        Events.post(new Message(message.getTopic().toString(),
+            new String(message.getPayloadAsBytes())));
+    }
 
-            initAuthentication(connOpts);
+    private Mqtt3AsyncClient connect() throws URISyntaxException {
+        LOGGER.info("Connecting MQTT client");
 
-            result.connect(connOpts);
-            LOGGER.info("MQTT client connected");
+        final URI uri = new URI(this.config.getUrl());
 
-            if (!this.subscriptions.isEmpty()) {
-                result.subscribe(this.subscriptions.toArray(new String[0]));
-                LOGGER.info("MQTT subscriptions: {}", this.subscriptions);
-            }
+        final Mqtt3AsyncClient result = Mqtt3Client.builder()
+            .serverHost(uri.getHost())
+            .serverPort(uri.getPort())
+            .addConnectedListener(this::onConnected)
+            .addDisconnectedListener(this::onDisconnected)
+            .automaticReconnect(MqttClientAutoReconnect.builder().build())
+            .buildAsync();
 
-            return Optional.of(result);
-        } catch (final MqttException e) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(e.getMessage(), e);
-            } else {
-                LOGGER.error("{} {}",
-                    e.getMessage(),
-                    Optional.ofNullable(e.getCause()).map(Throwable::getMessage).orElse("No cause."));
-            }
+        final Mqtt3Connect mqtt3Connect = initAuthentication()
+            .cleanSession(true)
+            .build();
 
-            return Optional.empty();
+        result.connect(mqtt3Connect);
+
+        if (!this.subscriptions.isEmpty()) {
+            final Stream<Mqtt3Subscription> subscriptionStream = this.subscriptions.stream()
+                .map(this::topicFilter);
+
+            final Mqtt3Subscribe subscribe = Mqtt3Subscribe.builder()
+                .addSubscriptions(subscriptionStream).build();
+            result.subscribe(subscribe, this::onMessage);
         }
+
+        return result;
     }
 
-    private void initAuthentication(final MqttConnectOptions connOpts) {
-        this.config.getUsername().ifPresent(connOpts::setUserName);
-        this.config.getPassword().map(String::toCharArray).ifPresent(connOpts::setPassword);
+    private Mqtt3Subscription topicFilter(final String filter) {
+        return Mqtt3Subscription.builder().topicFilter(filter).build();
+    }
+
+    private Mqtt3ConnectBuilder initAuthentication() {
+        final Mqtt3ConnectBuilder result = Mqtt3Connect.builder();
+        final Optional<String> user = this.config.getUsername();
+        final Optional<String> pass = this.config.getPassword();
+        if (user.isPresent() && pass.isPresent()) {
+            final Mqtt3SimpleAuth auth = Mqtt3SimpleAuth.builder()
+                .username(user.get())
+                .password(pass.get().getBytes(StandardCharsets.UTF_8))
+                .build();
+
+            return result.simpleAuth(auth);
+        }
+        return result;
     }
 
     private void publish(final String topic, final String value) {
         synchronized (this.mutex) {
-            LOGGER.debug("publishing {} = {}", topic, value);
-
-            if (!this.client.filter(MqttClient::isConnected).isPresent()) {
-                this.client = this.connect();
+            if (this.connected.get()) {
+                LOGGER.debug("publishing {} = {}", topic, value);
+            }
+            else {
+                LOGGER.error("cannot publish, not connected. {} = {}", topic, value);
             }
 
-            this.client.ifPresent(mqttClient -> {
-                try {
-                    final MqttMessage message = new MqttMessage(value.getBytes());
-                    message.setQos(this.config.getQos());
-                    message.setRetained(this.config.isRetain());
-                    mqttClient.publish(topic, message);
-                } catch (final MqttException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-            });
+            final Mqtt3Publish publish = Mqtt3Publish.builder()
+                .topic(topic)
+                .payload(value.getBytes(StandardCharsets.UTF_8))
+                .qos(qos())
+                .retain(this.config.isRetain())
+                .build();
+
+            this.client.publish(publish);
+        }
+    }
+
+    private MqttQos qos() {
+        switch (this.config.getQos()) {
+            case 0:
+                return MqttQos.AT_MOST_ONCE;
+            case 1:
+                return MqttQos.AT_LEAST_ONCE;
+            default:
+                return MqttQos.EXACTLY_ONCE;
         }
     }
 
@@ -168,16 +209,8 @@ public class GwMqttClient {
     }
 
     public void shutdown() {
-        this.client.ifPresent(c -> {
-            try {
-                onBridgInfo(BridgInfo.offline);
-
-                c.disconnect();
-                c.close();
-            } catch (final MqttException e) {
-                LOGGER.debug(e.getMessage(), e);
-            }
-        });
+        onBridgInfo(BridgInfo.offline);
+        this.client.disconnect();
     }
 
 }
