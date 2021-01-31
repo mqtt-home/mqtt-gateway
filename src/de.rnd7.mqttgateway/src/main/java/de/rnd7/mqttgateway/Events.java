@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 public class Events {
     private final static Events events = new Events();
     private final Executor executor = Executors.newFixedThreadPool(4);
-    private final AsyncEventBus eventBus = new AsyncEventBus("mqtt", this.executor);
+    private AsyncEventBus eventBus = new AsyncEventBus("mqtt", this.executor);
 
     private Events() {
 
@@ -17,6 +17,14 @@ public class Events {
 
     public static Events getInstance() {
         return events;
+    }
+
+    /**
+     * Call this method for test purpose only.
+     * This will create a new event bus and can be used to isolate test cases.
+     */
+    public void resetBus() {
+        this.eventBus = new AsyncEventBus("mqtt", this.executor);
     }
 
     public static void register(final Object object) {
