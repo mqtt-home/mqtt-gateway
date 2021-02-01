@@ -1,16 +1,27 @@
 package de.rnd7.mqttgateway;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class PublishMessage {
     private final String topic;
     private final String message;
     private final boolean relativeTopic;
+    private Optional<Boolean> retain = Optional.empty();
 
     private PublishMessage(final String topic, final String message, final boolean relativeTopic) {
         this.topic = topic;
         this.message = message;
         this.relativeTopic = relativeTopic;
+    }
+
+    public PublishMessage setRetain(final boolean retain) {
+        this.retain = Optional.of(retain);
+        return this;
+    }
+
+    public Optional<Boolean> getRetain() {
+        return this.retain;
     }
 
     public static PublishMessage relative(final String topic, final String message) {

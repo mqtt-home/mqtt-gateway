@@ -35,7 +35,6 @@ public class GwMqttClient {
     private static final Logger logger = LoggerFactory.getLogger(GwMqttClient.class);
 
     public static final String STATE = "bridge/state";
-    private final String defaultClientId;
 
     private final Object mutex = new Object();
     private final ConfigMqtt config;
@@ -48,7 +47,6 @@ public class GwMqttClient {
 
     private GwMqttClient(final ConfigMqtt config) throws URISyntaxException {
         this.config = config;
-        this.defaultClientId = UUID.randomUUID().toString();
         this.client = this.connect();
         this.deduplication = new MessageDeduplication(config.isDeduplicate(), config.getTopic());
     }
@@ -155,7 +153,7 @@ public class GwMqttClient {
         return result;
     }
 
-    private void publish(final String topic, final String value) {
+    private void publish(final String topic, final String value, final boolean retain) {
         synchronized (this.mutex) {
             if (this.connected.get()) {
                 logger.debug("publishing {} = {}", topic, value);
@@ -168,7 +166,7 @@ public class GwMqttClient {
                 .topic(topic)
                 .payload(value.getBytes(StandardCharsets.UTF_8))
                 .qos(qos())
-                .retain(this.config.isRetain())
+                .retain(retain)
                 .build();
 
             this.client.publish(publish);
@@ -194,7 +192,7 @@ public class GwMqttClient {
 
         final String topic = message.getTopic(this.config.getTopic());
         final String valueString = message.getMessage();
-        this.publish(topic, valueString);
+        this.publish(topic, valueString, message.getRetain().orElse(this.config.isRetain()));
     }
 
     @Subscribe
@@ -215,8 +213,9 @@ public class GwMqttClient {
         }
     }
 
-    public void online() {
+    public GwMqttClient online() {
         onBridgInfo(BridgInfo.online);
+        return this;
     }
 
     public void shutdown() {
