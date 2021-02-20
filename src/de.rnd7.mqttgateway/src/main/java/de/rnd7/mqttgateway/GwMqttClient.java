@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -190,7 +191,7 @@ public class GwMqttClient {
 
     @Subscribe
     public void onBridgInfo(final BridgInfo info) {
-        publishBridgeInfo(info.name());
+        publishBridgeInfo(info.name().toLowerCase(Locale.ROOT));
     }
 
     private void publishBridgeInfo(final String info) {
@@ -207,12 +208,12 @@ public class GwMqttClient {
     }
 
     public GwMqttClient online() {
-        onBridgInfo(BridgInfo.online);
+        onBridgInfo(BridgInfo.ONLINE);
         return this;
     }
 
     public void shutdown() {
-        onBridgInfo(BridgInfo.offline);
+        onBridgInfo(BridgInfo.OFFLINE);
         this.client.disconnect();
     }
 
