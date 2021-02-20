@@ -1,6 +1,13 @@
 # mqtt-gateway
 
-This is a internal component to build a MQTT gateway.
+[![mqtt-smarthome](https://img.shields.io/badge/mqtt-smarthome-blue.svg)](https://github.com/mqtt-smarthome/mqtt-smarthome)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=de.rnd7.mqttgateway%3Amqttgateway-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=de.rnd7.mqttgateway%3Amqttgateway-parent)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=de.rnd7.mqttgateway%3Amqttgateway-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=de.rnd7.mqttgateway%3Amqttgateway-parent)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=de.rnd7.mqttgateway%3Amqttgateway-parent&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=de.rnd7.mqttgateway%3Amqttgateway-parent)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=de.rnd7.mqttgateway%3Amqttgateway-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=de.rnd7.mqttgateway%3Amqttgateway-parent)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=de.rnd7.mqttgateway%3Amqttgateway-parent&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=de.rnd7.mqttgateway%3Amqttgateway-parent)
+
+This is an internal component to build a MQTT gateway.
 
 ## Maven
 
