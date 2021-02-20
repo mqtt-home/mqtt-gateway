@@ -7,7 +7,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class Events {
-    private final static Events events = new Events();
+    private static final Events events = new Events();
     private final Executor executor = Executors.newFixedThreadPool(4);
     private EventBus eventBus = new AsyncEventBus("mqtt", this.executor);
 
