@@ -1,0 +1,12 @@
+{
+    "mqtt": {
+        "url": "tcp://192.168.2.98:1883",
+        "username": "user",
+        "password": "password",
+        "deduplicate": false
+    },
+    "app": {
+        "duration": 1234,
+        "date": "2021-02-20T07:48:39.389776+01:00[Europe/Berlin]"
+    }
+}
