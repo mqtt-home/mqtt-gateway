@@ -46,4 +46,17 @@ class ConfigMqttTest {
         assertTrue(config.isDeduplicate());
         assertEquals("bridge", config.getBridgeInfoTopic().orElseThrow(IllegalStateException::new));
     }
+    @Test
+    void test_set_default_topic() {
+        final ConfigMqtt config = new ConfigMqtt();
+
+        config.setDefaultTopic("default-topic");
+        assertEquals("default-topic", config.getTopic());
+
+        config.setTopic("topic");
+        assertEquals("topic", config.getTopic());
+
+        config.setDefaultTopic("default-topic");
+        assertEquals("topic", config.getTopic());
+    }
 }
