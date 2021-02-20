@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
 
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect;
@@ -55,6 +54,10 @@ public class GwMqttClient {
     }
 
     public static GwMqttClient start(final ConfigMqtt config) throws URISyntaxException {
+        if (config.getUrl() == null) {
+            throw new IllegalArgumentException("MQTT broker URL must be set in the configuration.");
+        }
+
         final GwMqttClient client = new GwMqttClient(config);
         Events.register(client);
 
@@ -120,15 +123,6 @@ public class GwMqttClient {
             .build();
 
         result.connect(mqtt3Connect);
-
-        if (!this.subscriptions.isEmpty()) {
-            final Stream<Mqtt3Subscription> subscriptionStream = this.subscriptions.stream()
-                .map(this::topicFilter);
-
-            final Mqtt3Subscribe subscribe = Mqtt3Subscribe.builder()
-                .addSubscriptions(subscriptionStream).build();
-            result.subscribe(subscribe, this::onMessage);
-        }
 
         return result;
     }

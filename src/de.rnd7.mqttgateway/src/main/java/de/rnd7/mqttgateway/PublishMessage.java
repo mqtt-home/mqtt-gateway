@@ -1,13 +1,14 @@
 package de.rnd7.mqttgateway;
 
-import java.util.Objects;
+import com.google.common.base.Objects;
+
 import java.util.Optional;
 
-public class PublishMessage {
+public final class PublishMessage {
     private final String topic;
     private final String message;
     private final boolean relativeTopic;
-    private Optional<Boolean> retain = Optional.empty();
+    private Boolean retain = null;
 
     private PublishMessage(final String topic, final String message, final boolean relativeTopic) {
         this.topic = topic;
@@ -16,12 +17,12 @@ public class PublishMessage {
     }
 
     public PublishMessage setRetain(final boolean retain) {
-        this.retain = Optional.of(retain);
+        this.retain = retain;
         return this;
     }
 
     public Optional<Boolean> getRetain() {
-        return this.retain;
+        return Optional.ofNullable(this.retain);
     }
 
     public static PublishMessage relative(final String topic, final String message) {
@@ -57,14 +58,12 @@ public class PublishMessage {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final PublishMessage message = (PublishMessage) o;
-        return Objects.equals(this.topic, message.topic) &&
-            Objects.equals(this.message, message.message) &&
-            Objects.equals(this.relativeTopic, message.relativeTopic);
+        final PublishMessage message1 = (PublishMessage) o;
+        return this.relativeTopic == message1.relativeTopic && Objects.equal(this.topic, message1.topic) && Objects.equal(this.message, message1.message) && Objects.equal(this.retain, message1.retain);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.topic, this.message, this.relativeTopic);
+        return Objects.hashCode(this.topic, this.message, this.relativeTopic, this.retain);
     }
 }

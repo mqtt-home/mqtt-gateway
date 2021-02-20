@@ -41,7 +41,7 @@ public class Events {
     }
 
     public static void post(final Object object) {
-        events.eventBus.post(object);
+        getBus().post(object);
     }
 
     public static EventBus getBus() {
