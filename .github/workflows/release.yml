@@ -10,7 +10,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: 2.0.1-b${{ github.run_number }}
+      RELEASE_VERSION: 2.0.2-b${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v2
