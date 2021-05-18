@@ -3,8 +3,6 @@ package de.rnd7.mqttgateway;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +39,6 @@ public class GwMqttClient {
     private final Mqtt3AsyncClient client;
 
     private final MessageDeduplication deduplication;
-    private final List<String> subscriptions = new ArrayList<>();
     private final AtomicBoolean connected = new AtomicBoolean(false);
 
     private GwMqttClient(final ConfigMqtt config) throws URISyntaxException {
@@ -77,8 +74,6 @@ public class GwMqttClient {
     }
 
     public void subscribe(final String topic) {
-        this.subscriptions.add(topic);
-
         final CompletableFuture<Mqtt3SubAck> subscribe = this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
             this::onMessage);
 
