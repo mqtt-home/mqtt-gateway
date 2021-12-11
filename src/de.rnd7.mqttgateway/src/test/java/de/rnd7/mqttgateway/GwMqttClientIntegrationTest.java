@@ -42,17 +42,27 @@ class GwMqttClientIntegrationTest {
 
     @Test
     void test_gateway_info() throws URISyntaxException {
+        final String host = this.extension.getHost();
+        final int port = this.extension.getMqttPort();
+
         final GwMqttClient client = GwMqttClient.start(new ConfigMqtt()
             .setUrl(String.format("tcp://%s:%s",
-                this.extension.getHost(),
-                this.extension.getMqttPort()))
+                host,
+                port))
             .setBridgeInfoTopic("bridge"));
+
+        final GwMqttClient otherClient = GwMqttClient.start(new ConfigMqtt()
+            .setUrl(String.format("tcp://%s:%s",
+                host,
+                port))
+            .setBridgeInfoTopic("bridge"));
+        otherClient.subscribe("#");
 
         final MessageConsumer consumer = new MessageConsumer();
         Events.register(consumer);
 
         awaitConnected(client);
-        client.subscribe("#");
+        // client.subscribe("#");
         client.online();
 
         final Message online = consumer.awaitCount(1).get(0);
