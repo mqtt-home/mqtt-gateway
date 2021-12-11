@@ -3,7 +3,6 @@ package de.rnd7.mqttgateway;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +14,7 @@ import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientDisconnectedContext;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
 import com.hivemq.client.mqtt.mqtt3.message.auth.Mqtt3SimpleAuth;
 import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3Connect;
 import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3ConnectBuilder;
@@ -59,18 +59,7 @@ public class GwMqttClient {
         final GwMqttClient client = new GwMqttClient(config);
         Events.register(client);
 
-        registerOfflineHook(client);
-
         return client;
-    }
-
-    private static void registerOfflineHook(final GwMqttClient mqttClient) {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                mqttClient.shutdown();
-            }
-        });
     }
 
     public void subscribe(final String topic) {
@@ -106,13 +95,14 @@ public class GwMqttClient {
 
         final URI uri = new URI(this.config.getUrl());
 
-        final Mqtt3AsyncClient result = Mqtt3Client.builder()
+        final Mqtt3ClientBuilder mqtt3ClientBuilder = Mqtt3Client.builder()
             .serverHost(uri.getHost())
             .serverPort(uri.getPort())
             .addConnectedListener(this::onConnected)
             .addDisconnectedListener(this::onDisconnected)
-            .automaticReconnect(MqttClientAutoReconnect.builder().build())
-            .buildAsync();
+            .automaticReconnect(MqttClientAutoReconnect.builder().build());
+
+        final Mqtt3AsyncClient result = registerWill(mqtt3ClientBuilder);
 
         final Mqtt3Connect mqtt3Connect = initAuthentication()
             .cleanSession(true)
@@ -121,6 +111,25 @@ public class GwMqttClient {
         result.connect(mqtt3Connect);
 
         return result;
+    }
+
+    private Mqtt3AsyncClient registerWill(final Mqtt3ClientBuilder mqtt3ClientBuilder) {
+        if (this.config.isPublishBridgeInfo()) {
+            final String info = BridgeInfo.OFFLINE.toMessage();
+            final Optional<String> topic = this.config.getBridgeInfoTopic();
+            final PublishMessage message = topic.map(s -> PublishMessage.absolute(s, info))
+                .orElseGet(() -> PublishMessage.relative(STATE, info));
+
+            final String valueString = message.getMessage();
+
+            return mqtt3ClientBuilder
+                .willPublish()
+                .topic(message.getTopic(this.config.getTopic()))
+                .payload(valueString.getBytes(StandardCharsets.UTF_8)).applyWillPublish()
+                .buildAsync();
+
+        }
+        return mqtt3ClientBuilder.buildAsync();
     }
 
     private Mqtt3Subscription topicFilter(final String filter) {
@@ -185,8 +194,8 @@ public class GwMqttClient {
     }
 
     @Subscribe
-    public void onBridgInfo(final BridgInfo info) {
-        publishBridgeInfo(info.name().toLowerCase(Locale.ROOT));
+    public void onBridgInfo(final BridgeInfo info) {
+        publishBridgeInfo(info.toMessage());
     }
 
     private void publishBridgeInfo(final String info) {
@@ -203,12 +212,12 @@ public class GwMqttClient {
     }
 
     public GwMqttClient online() {
-        onBridgInfo(BridgInfo.ONLINE);
+        onBridgInfo(BridgeInfo.ONLINE);
         return this;
     }
 
     public void shutdown() {
-        onBridgInfo(BridgInfo.OFFLINE);
+        onBridgInfo(BridgeInfo.OFFLINE);
         this.client.disconnect();
     }
 
