@@ -134,5 +134,6 @@
 
     <modules>
         <module>de.rnd7.mqttgateway</module>
+        <module>de.rnd7.mqttgateway.test</module>
     </modules>
 </project>
