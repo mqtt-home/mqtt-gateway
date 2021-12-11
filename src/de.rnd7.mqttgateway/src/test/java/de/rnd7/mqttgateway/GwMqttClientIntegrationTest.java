@@ -4,6 +4,7 @@ import com.hivemq.testcontainer.junit5.HiveMQTestContainerExtension;
 import de.rnd7.mqttgateway.config.ConfigMqtt;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.testcontainers.utility.DockerImageName;
 
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GwMqttClientIntegrationTest {
     @RegisterExtension
     final public HiveMQTestContainerExtension extension
-        = new HiveMQTestContainerExtension("hivemq/hivemq-ce", "2020.6");
+        = new HiveMQTestContainerExtension(DockerImageName.parse("hivemq/hivemq-ce:2021.3"));
 
     @Test
     void test_connect() throws URISyntaxException {
