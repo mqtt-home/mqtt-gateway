@@ -40,6 +40,7 @@ public class GwMqttClient {
 
     private final MessageDeduplication deduplication;
     private final AtomicBoolean connected = new AtomicBoolean(false);
+    private final AtomicBoolean expectDisconnect = new AtomicBoolean(false);
 
     private GwMqttClient(final ConfigMqtt config) throws URISyntaxException {
         this.config = config;
@@ -81,7 +82,9 @@ public class GwMqttClient {
     }
 
     private void onDisconnected(final MqttClientDisconnectedContext context) {
-        logger.error("MQTT client disconnected: {}", context.getCause().getMessage(), context.getCause());
+        if (!expectDisconnect.get()) {
+            logger.error("MQTT client disconnected: {}", context.getCause().getMessage(), context.getCause());
+        }
         this.connected.set(false);
     }
 
@@ -92,6 +95,7 @@ public class GwMqttClient {
 
     private Mqtt3AsyncClient connect() throws URISyntaxException {
         logger.info("Connecting MQTT client");
+        expectDisconnect.set(false);
 
         final URI uri = new URI(this.config.getUrl());
 
@@ -217,6 +221,7 @@ public class GwMqttClient {
     }
 
     public void shutdown() {
+        expectDisconnect.set(true);
         onBridgInfo(BridgeInfo.OFFLINE);
         this.client.disconnect();
     }
