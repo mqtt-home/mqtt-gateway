@@ -2,6 +2,11 @@ name: Release/Package
 
 on:
   workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: 'Version'     
+        required: true
+        default: '2.1.0'  
 #  release:
 #    types: [created]
 
@@ -10,7 +15,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: 2.1.0-b${{ github.run_number }}
+      RELEASE_VERSION: ${{ github.event.inputs.releaseVersion }}-b${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v2
