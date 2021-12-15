@@ -2,8 +2,15 @@ name: Release/Package
 
 on:
   workflow_dispatch:
-#  release:
-#    types: [created]
+    inputs:
+      releaseType:
+        description: Release type
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   build:
@@ -14,6 +21,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: philipparndt/get-release-number@v1
+        id: next
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          releaseType: ${{ github.event.inputs.releaseType }}
+
       - name: Set up JDK 1.8
         uses: actions/setup-java@v2
         with:
@@ -22,8 +36,10 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-      - name: Update version to ${{env.RELEASE_VERSION}}
+      - name: Update version to ${{ steps.next.outputs.version }}
         run: mvn versions:set -DnewVersion=$RELEASE_VERSION --file src/pom.xml
+        env:
+          RELEASE_VERSION: ${{ steps.next.outputs.version }}
 
       - name: Build with Maven
         run: mvn -B package --file src/pom.xml
@@ -38,6 +54,7 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.next.outputs.version }}
         with:
           tag_name: ${{env.RELEASE_VERSION}}
           release_name: ${{env.RELEASE_VERSION}}
@@ -53,6 +70,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.next.outputs.version }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./src/de.rnd7.mqttgateway/target/mqttgateway-${{env.RELEASE_VERSION}}.jar
