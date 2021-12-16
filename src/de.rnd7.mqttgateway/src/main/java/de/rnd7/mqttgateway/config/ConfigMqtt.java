@@ -1,5 +1,6 @@
 package de.rnd7.mqttgateway.config;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -25,6 +26,9 @@ public class ConfigMqtt {
 
     @SerializedName("bridge-info")
     private boolean bridgeInfo = true;
+
+    @Expose(serialize = false)
+    private boolean autoPublish = true;
 
     @SerializedName("bridge-info-topic")
     private String bridgeInfoTopic;
@@ -100,6 +104,15 @@ public class ConfigMqtt {
 
     public ConfigMqtt setBridgeInfo(final boolean bridgeInfo) {
         this.bridgeInfo = bridgeInfo;
+        return this;
+    }
+
+    public boolean isAutoPublish() {
+        return autoPublish;
+    }
+
+    public ConfigMqtt setAutoPublish(final boolean autoPublish) {
+        this.autoPublish = autoPublish;
         return this;
     }
 

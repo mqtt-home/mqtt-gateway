@@ -68,7 +68,7 @@ public class GwMqttClient {
         subscribe(topic.getTopic());
     }
 
-    public void subscribe(final String topic) {
+    public GwMqttClient subscribe(final String topic) {
         final CompletableFuture<Mqtt3SubAck> subscribe = this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
             this::onMessage);
 
@@ -79,11 +79,17 @@ public class GwMqttClient {
         } catch (final Exception e) {
             logger.error("Subscription not successful within the given time.", e);
         }
+
+        return this;
     }
 
     private void onConnected(final MqttClientConnectedContext context) {
         logger.info("MQTT client connected");
         this.connected.set(true);
+
+        if (config.isPublishBridgeInfo() && config.isAutoPublish()) {
+            online();
+        }
     }
 
     private void onDisconnected(final MqttClientDisconnectedContext context) {

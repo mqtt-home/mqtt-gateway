@@ -50,20 +50,21 @@ class GwMqttClientIntegrationTest {
             .setUrl(String.format("tcp://%s:%s",
                 host,
                 port))
-            .setBridgeInfoTopic("bridge"));
+            .setBridgeInfoTopic("bridge")
+            .setAutoPublish(false));
 
         final GwMqttClient otherClient = GwMqttClient.start(new ConfigMqtt()
             .setUrl(String.format("tcp://%s:%s",
                 host,
                 port))
-            .setBridgeInfoTopic("bridge"));
+            .setBridgeInfoTopic("bridge")
+            .setAutoPublish(false));
         otherClient.subscribe("#");
 
         final MessageConsumer consumer = new MessageConsumer();
         Events.register(consumer);
 
         awaitConnected(client);
-        // client.subscribe("#");
         client.online();
 
         final Message online = consumer.awaitCount(1).get(0);
@@ -103,4 +104,30 @@ class GwMqttClientIntegrationTest {
         client.shutdown();
     }
 
+    @Test
+    void test_auto_publish() throws URISyntaxException {
+        final String host = this.extension.getHost();
+        final int port = this.extension.getMqttPort();
+
+        final GwMqttClient otherClient = GwMqttClient.start(new ConfigMqtt()
+            .setUrl(String.format("tcp://%s:%s",
+                host,
+                port))
+            .setAutoPublish(false));
+        otherClient.subscribe("#");
+
+        final MessageConsumer consumer = new MessageConsumer();
+        Events.register(consumer);
+
+        GwMqttClient.start(new ConfigMqtt()
+            .setUrl(String.format("tcp://%s:%s",
+                host,
+                port))
+            .setBridgeInfoTopic("bridge")
+            .setAutoPublish(true));
+
+        final Message online = consumer.awaitCount(1).get(0);
+        assertEquals("bridge", online.getTopic());
+        assertEquals("online", online.getRaw());
+    }
 }
