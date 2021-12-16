@@ -63,6 +63,11 @@ public class GwMqttClient {
         return client;
     }
 
+    @Subscribe
+    public void subscribe(final SubscribeTopic topic) {
+        subscribe(topic.getTopic());
+    }
+
     public void subscribe(final String topic) {
         final CompletableFuture<Mqtt3SubAck> subscribe = this.client.subscribe(Mqtt3Subscribe.builder().addSubscription(this.topicFilter(topic)).build(),
             this::onMessage);

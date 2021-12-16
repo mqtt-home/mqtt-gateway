@@ -78,4 +78,29 @@ class GwMqttClientIntegrationTest {
         assertEquals("offline", offline.getRaw());
     }
 
+    @Test
+    void test_subscribe_event() throws URISyntaxException {
+        final String host = this.extension.getHost();
+        final int port = this.extension.getMqttPort();
+
+        final GwMqttClient client = GwMqttClient.start(new ConfigMqtt()
+            .setUrl(String.format("tcp://%s:%s",
+                host,
+                port)));
+
+        awaitConnected(client);
+
+        Events.post(new SubscribeTopic("test/#"));
+        final MessageConsumer consumer = new MessageConsumer();
+        Events.register(consumer);
+        Events.post(PublishMessage.absolute("test", "value"));
+
+        final Message msg = consumer.awaitCount(1).get(0);
+        assertEquals("test", msg.getTopic());
+        assertEquals("value", msg.getRaw());
+
+        consumer.clear();
+        client.shutdown();
+    }
+
 }
