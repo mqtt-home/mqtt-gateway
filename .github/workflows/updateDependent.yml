@@ -28,9 +28,9 @@ jobs:
 
       - uses: fusion-engineering/setup-git-credentials@v2
         with:
-          credentials: ${{secrets.GIT_CREDENTIALS}}
+          credentials: https://${{secrets.GIT_USERNAME}}:${{secrets.GIT_TOKEN}}@github.com/
 
       - name: Build with Maven
         run: .github/workflows/update-versions.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GIT_CREDENTIALS }}
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
