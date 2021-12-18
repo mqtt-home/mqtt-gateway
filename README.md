@@ -19,7 +19,7 @@ Add the following repository to your project:
 <repository>
   <id>github</id>
   <name>GitHub philipparndt Apache Maven Packages</name>
-  <url>https://maven.pkg.github.com/philipparndt/mqtt-gateway</url>
+  <url>https://maven.pkg.github.com/mqtt-home/mqtt-gateway</url>
 </repository>
 ```
 
