@@ -21,6 +21,11 @@ jobs:
           server-id: github
           settings-path: ${{ github.workspace }}
 
+      - name: Configure Git
+        run: |
+          git config --global user.email "2f.mail@gmx.de"
+          git config --global user.name "MQTT Gateway Release Bot"
+
       - name: Build with Maven
         run: .github/workflows/update-versions.sh
         env:
