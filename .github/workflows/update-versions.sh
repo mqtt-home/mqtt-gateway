@@ -20,7 +20,7 @@ pushd build
 
         git add .
         git commit -m"Update to mqttgateway $VERSION"
-        git push --set-upstream origin mqttgateway-2.3.1
+        git push --set-upstream origin "mqttgateway-$VERSION"
         gh pr create --title "Dependency: Update to mqttgateway $VERSION" --body "Dependency: Update to mqttgateway $VERSION"
       popd
   done
