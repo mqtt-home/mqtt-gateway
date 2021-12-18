@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        project: [mqtt-to-telegram]
+        project: [mqtt-to-telegram, fritzbox-to-mqtt-gw]
 
     steps:
       - uses: actions/checkout@v2
