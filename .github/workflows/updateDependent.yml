@@ -10,6 +10,10 @@ jobs:
     env:
       RELEASE_VERSION: 2.1.0-b${{ github.run_number }}
 
+    strategy:
+      matrix:
+        project: [mqtt-to-telegram]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -30,7 +34,8 @@ jobs:
         with:
           credentials: https://${{secrets.GIT_USERNAME}}:${{secrets.GIT_TOKEN}}@github.com/
 
-      - name: Build with Maven
+      - name: Update version for ${{ matrix.project }}
         run: .github/workflows/update-versions.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          PROJECTS: ${{ matrix.project }}

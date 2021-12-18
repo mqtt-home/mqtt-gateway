@@ -5,7 +5,7 @@ VERSION=$(gh release list | grep Latest | awk '{print $1}')
 echo "Update to version $VERSION"
 mkdir build
 pushd build
-  repos=( mqtt-to-telegram )
+  repos=PROJECTS
   for REPO in "${repos[@]}"
   do
     gh repo clone "mqtt-home/$REPO"
