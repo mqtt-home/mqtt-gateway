@@ -18,7 +18,7 @@ Add the following repository to your project:
 ```xml
 <repository>
   <id>github</id>
-  <name>GitHub philipparndt Apache Maven Packages</name>
+  <name>GitHub mqtt-home Apache Maven Packages</name>
   <url>https://maven.pkg.github.com/mqtt-home/mqtt-gateway</url>
 </repository>
 ```
