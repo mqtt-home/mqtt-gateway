@@ -26,6 +26,10 @@ jobs:
           git config --global user.email "2f.mail@gmx.de"
           git config --global user.name "MQTT Gateway Release Bot"
 
+      - uses: fusion-engineering/setup-git-credentials@v2
+        with:
+          credentials: ${{secrets.GIT_CREDENTIALS}}
+
       - name: Build with Maven
         run: .github/workflows/update-versions.sh
         env:
